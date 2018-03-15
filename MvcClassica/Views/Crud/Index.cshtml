@@ -1,0 +1,91 @@
+﻿@model MvcClassica.Models.PesquisaFormModel
+
+@{
+    ViewBag.Title = "Pesquisa";
+}
+
+<h2>@ViewBag.Title</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.LabelFor(model => model.Termo)<br />
+    @Html.EditorFor(model => model.Termo)
+    <hr />
+    <input type="submit" value="Pesquisar" />
+}
+
+<hr />
+<p>
+    <strong>RESULTADO:</strong>
+</p>
+<ul>
+    @foreach (var item in (Model?.Interno?.Resultado ?? Enumerable.Empty<MvcClassica.Models.CrudItemModel>()))
+    {
+        <li>@item.Codigo - @item.Nome</li>
+    }
+</ul>
+
+<hr />
+
+@if (Model != null)
+{
+    using (Html.BeginForm("Index", "Crud", FormMethod.Post, new { id = "PageForm" }))
+    {
+        @Html.HiddenFor(m => m.PageCount)
+        @Html.HiddenFor(m => m.PageIndex)
+        @Html.HiddenFor(m => m.PageTotal)
+        @Html.HiddenFor(m => m.Termo)
+        <nav aria-label="Page navigation">
+            <ul class="pagination" style="cursor:pointer">
+
+                <li class="@(Model.PageIndex ==0?"disabled":"")">
+                    @if (Model.PageIndex > 0)
+                    {
+                        <a data-page-form-id="PageForm" data-page-submit="@(Model.PageIndex-1)">
+                            <span aria-hidden="true">Anterior</span>
+                        </a>
+                    }
+                    else
+                    {
+                        <span aria-hidden="true">Anterior</span>
+                    }
+                </li>
+                @for (int i = 0; i < (Model.PageTotal / Model.PageCount); i++)
+                {
+                    <li class="@(Model.PageIndex==i ? "active":"")"><a data-page-form-id="PageForm" data-page-submit="@i">@(i + 1)</a></li>
+                }
+                @if (Model.PageTotal > 0 && Model.PageTotal < Model.PageCount)
+                {
+                    <li class="active"><a>1</a></li>
+                }
+                <li class="@(Model.PageIndex +1 >= (Model.PageTotal / Model.PageCount)?"disabled":"")">
+                    @if (Model.PageIndex + 1 < (Model.PageTotal / Model.PageCount))
+                    {
+                        <a data-page-form-id="PageForm" data-page-submit="@(Model.PageIndex+1)">
+                            <span aria-hidden="true">Próxima</span>
+                        </a>
+                    }
+                    else
+                    {
+                        <span aria-hidden="true">Próxima</span>
+                    }
+                </li>
+            </ul>
+        </nav>
+    }
+}
+
+
+@section scripts {
+    <script>
+        $(function () {
+            $(document).on('click', '*[data-page-submit]', function () {
+                var data = $(this).data('page-submit');
+                var formId = $(this).data('page-form-id');
+
+                $('#' + formId + ' input[name=PageIndex]').val(data);
+                $('#' + formId).submit();
+            });
+        });
+    </script>
+}
